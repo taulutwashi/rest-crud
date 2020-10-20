@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const { readFileData, writeFileData } = require('./helpers/util');
 
-const schema = require('./helpers/schema');
+const { validateForm } = require('./helpers/middleware');
 
 router.get('/', async (request, response) => {
 	try {
@@ -23,16 +23,7 @@ router.get('/', async (request, response) => {
 	}
 });
 
-router.post('/', async (request, response) => {
-	const { error } = schema.validate(request.body);
-
-	if (!!error) {
-		return response.status(422).send({
-			success: false,
-			message: 'Validation Failed.',
-			error: error.details,
-		});
-	}
+router.post('/', validateForm, async (request, response) => {
 
 	try {
 		const data = await readFileData();
