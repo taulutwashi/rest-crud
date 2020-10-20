@@ -1,16 +1,14 @@
-const express    = require('express');
+const express = require('express');
 const bodyParser = require('body-parser');
-const morgan     = require('morgan');
+const morgan = require('morgan');
 
-const routes = require('./src/routes');
+const router = require('./src/router');
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
-app.use(routes);
+app.use(router);
 
 const port = process.env.PORT || 3000;
-
-app.listen(port,() => console.info(`Server started on port ${port}`));
-
+app.listen(port, () => console.info(`Server started on port ${port}`));

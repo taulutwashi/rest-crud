@@ -2,7 +2,8 @@
   "name": "rest-crud",
   "version": "1.0.0",
   "main": "server.js",
-  "author": "Taulut Hossain Washi <washinpi@gmail.com>",
+  "repository": "https://github.com/WASHINPI/rest-crud",
+  "author": "Washi <washinpi@gmail.com>",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -17,7 +18,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.6",
-    "jest": "^26.5.3"
+    "jest": "^26.5.3",
+    "nodemon": "^2.0.6"
   }
 }
