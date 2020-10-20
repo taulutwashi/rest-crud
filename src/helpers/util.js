@@ -1,39 +1,20 @@
-const path   = require('path');
-const fs     = require('fs');
+const path = require('path');
+const fs = require('fs');
 
-const filePath = path.join(__dirname,'..','db','db.json');
+const databaseFileName = process.env.DATABASE || 'db.json';
+const filePath = path.join(__dirname,'..','db',databaseFileName);
 
-const readFileData = () => {
-
-    return new Promise((resolve,reject) => {
-
-        fs.readFile(filePath,'utf8',(err, data) => {
-
-            if (err) reject(err)
-
+const readFileData = () => new Promise((resolve,reject) =>
+        fs.readFile(filePath,'utf8',(error, data) => {
+            if (!!error) reject(err)
             resolve(JSON.parse(data))
+        }));
 
-        });
-
-    })
-
-}
-
-const writeFileData = data => {
-
-    return new Promise((resolve, reject) => {
-
-        fs.writeFile(filePath,JSON.stringify(data),(err,res) => {
-
-            if(err) reject(err);
-
-            return resolve(res);
-            
-        })
-
-    })
-
-}
+const writeFileData = data => new Promise((resolve, reject) =>
+        fs.writeFile(filePath,JSON.stringify(data), error => {
+            if(!!error) reject(error);
+            resolve();
+        }));
 
 module.exports = {
     readFileData,

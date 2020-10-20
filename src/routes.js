@@ -1,156 +1,151 @@
 const route = require('express').Router();
 const { v4: uuidv4 } = require('uuid');
 
-const {
-    readFileData,
-    writeFileData
-} = require('./helpers/util');
+const { readFileData, writeFileData } = require('./helpers/util');
 
 const schema = require('./helpers/schema');
 
+route.get('/', async (request,response) => {
 
+    try {
+            const data = await readFileData();
 
-route.get('/', (req,res,next) => {
-
-    readFileData()
-        .then(response => {
-            res.status(200).send({
+            response.status(200).send({
                 success: true,
-                message: "Data found",
-                data: response
+                message: "Data Found.",
+                data
             })
-        })
-        .catch(err => {
-            res.status(500).send({
+    } catch (error) {
+            response.status(500).send({
                 success: false,
                 message: "Something went wrong.",
-                erros: err
+                erros
             })
-        });
+    }
 
 });
 
-route.post('/', async (req,res,next) => {
+route.post('/', async (request,response) => {
 
-    const { error } = schema.validate(req.body);
+    const { error } = schema.validate(request.body);
 
-    if(error) {
-        res.status(422).send({
+    if(!!error) {
+        return response.status(422).send({
             success: false,
             message: "Validation Failed.",
             erros: error.details
         })
-        return;
     }
 
     try{
-        const result = await readFileData();
-        req.body.id = uuidv4();
-        result.push(req.body);
-        await writeFileData(result)
 
-        res.status(201).send({
+        const data = await readFileData();
+
+        const newItem = {
+            id:uuidv4(),
+            ...request.body
+        }
+
+        data.push(newItem);
+
+        await writeFileData(data);
+
+        response.status(201).send({
             success: true,
             message: "Data has been Submitted successfully",
-            data: req.body
+            data: newItem
         });
 
-    }catch(err){
-        res.status(500).send({
-            success: false,
-            message: "Internal server error",
-            erros: err
-        });
+    }catch(error){
+            response.status(500).send({
+                success: false,
+                message: "Internal server error",
+                error
+            });
     }
 
-    return;
-
 });
 
-route.get('/:id',async (req,res,next) => {
-    readFileData()
-        .then(response => {
+route.get('/:id',async (request,response) => {
 
-            const result = response.find(item => item.id==req.params.id);
+    try {
 
-            if(!result) {
-                res.status(404).send({
-                    success: false,
-                    message: "Data not found.",
-                    data: result
-                })
-            }else {
-                res.status(200).send({
-                    success: true,
-                    message: "Data found",
-                    data: result
-                })
-            }
+        const data = await readFileData();
 
-        })
-        .catch(error => {
-            res.status(500).send({
+        const item = data.find(item => item.id === request.params.id);
+
+        if(!item) {
+           return response.status(404).send({
                 success: false,
-                message: "Something went wrong.",
-                erros: error
+                message: "Data not found."
             })
+        }
+
+        response.status(200).send({
+            success: true,
+            message: "Data found",
+            data: item
         })
+
+    } catch (error) {
+        response.status(500).send({
+            success: false,
+            message: "Something went wrong.",
+            error
+        })
+    }
 
 });
 
-route.put("/:id",async (req,res,next) => {
+route.put("/:id",async (request,response) => {
 
     try{
         const data = await readFileData();
 
-        const result = data.map(item => {
+        const index = data.findIndex(item => item.id === request.params.id);
 
-            if(item.id == req.params.id) {
-                return {
-                    ...item,
-                    ...req.body
-                }
-            }else{
-                return item;
-            }
+        if(!index) {
+            return response.status(404).send({
+				success: false,
+				message: 'Data not found.',
+			});
+        }
 
-        });
+        const item = data[index];
 
-        await writeFileData(result)
+        const updatedItem = {...item,...request.body}
+
+        data[index] = updatedItem;
+
+        await writeFileData(data)
 
         res.status(200).send({
             success: true,
             message: "Data Updated successfully.",
-            data: result.find(item => item.id == req.params.id)
+            data: updatedItem
         });
 
-    }catch(err) {
+    }catch(error) {
         res.status(500).send({
             success: false,
             message: "Something went wrong.",
-            erros: err
+            error
         })
     }
 });
 
 route.delete("/:id", async (req,res,next) => {
 
-    try{
+    const data = await readFileData();
 
-        const data = await readFileData();
+    const result = data.filter(item => item.id !== req.params.id);
 
-        const result = data.filter(item => item.id != req.params.id);
+    await writeFileData(result)
 
-        await writeFileData(result)
-
-        res.status(200).send({
-            success: true,
-            message: "Data Deleted Successfully."
-        });
-
-    }catch(err) {
-        throw err;
-    }
+    res.status(200).send({
+        success: true,
+        message: "Data Deleted Successfully."
+    });
 
 })
 
